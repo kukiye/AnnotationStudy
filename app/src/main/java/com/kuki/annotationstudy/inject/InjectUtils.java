@@ -1,6 +1,9 @@
 package com.kuki.annotationstudy.inject;
 
 import android.app.Activity;
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 
 import java.lang.reflect.Field;
@@ -13,6 +16,11 @@ import java.lang.reflect.Field;
  */
 public class InjectUtils {
 
+    /**
+     * 通过反射注解获取activity 的view
+     *
+     * @param activity
+     */
     public static void injectView(Activity activity) {
         Class<? extends Activity> aClass = activity.getClass();
 
@@ -40,5 +48,48 @@ public class InjectUtils {
         }
 
     }
+
+
+    /**
+     * 通过反射注解获取activity 的Intent Data
+     *
+     * @param activity
+     */
+    public static void injectIntentData(Activity activity) {
+        Class<? extends Activity> aClass = activity.getClass();
+
+        Field[] declaredFieldArr = aClass.getDeclaredFields();
+        for (Field field : declaredFieldArr) {
+            if (field.isAnnotationPresent(IntentData.class)) {
+
+                IntentData intentData = field.getAnnotation(IntentData.class);
+                String injectValue = intentData.value();
+                //                Log.d("InjectUtils", "injectValue==" + injectValue);
+                //注入的值可能是空
+                String fildName = TextUtils.isEmpty(injectValue) ? field.getName() : injectValue;
+                //                Log.d("InjectUtils", "field.getName()==" + field.getName());
+                //                Log.d("InjectUtils", "fildName==" + fildName);
+
+                //从Intent 中获取fildName作为Key的值
+                Bundle bundle = activity.getIntent().getExtras();
+                if (bundle.containsKey(fildName)) {
+                    Object object = bundle.get(fildName);
+
+                    //给activity的属性赋值 通过反射
+                    field.setAccessible(true);
+
+                    try {
+                        field.set(activity, object);
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+
+        }
+
+    }
+
 
 }
