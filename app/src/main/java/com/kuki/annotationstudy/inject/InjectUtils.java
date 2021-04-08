@@ -12,23 +12,26 @@ import java.lang.reflect.Field;
  * description :
  */
 public class InjectUtils {
-    
-    public static void injectView(Activity activity){
+
+    public static void injectView(Activity activity) {
         Class<? extends Activity> aClass = activity.getClass();
 
         //获得此类的所有属性
         Field[] declaredFields = aClass.getDeclaredFields();
         for (Field field : declaredFields) {
             //判断属性是否被InjectView注解声明
-            if(field.isAnnotationPresent(InjectView.class)){
+            if (field.isAnnotationPresent(InjectView.class)) {
                 //获取属性
                 InjectView injectView = field.getAnnotation(InjectView.class);
+                //获得了注解中设置的id
                 int id = injectView.value();
                 View view = activity.findViewById(id);
-
+                //反射设置 属性的值
+                //设置访问权限，允许操作private的属性
                 field.setAccessible(true);
                 try {
-                    field.set(activity,view);
+                    //反射赋值
+                    field.set(activity, view);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
@@ -37,5 +40,5 @@ public class InjectUtils {
         }
 
     }
-    
+
 }
